@@ -22,14 +22,14 @@ $subject = $_POST['subject'];
 $msg = $_POST['msg'];
 
 try {
-  $mail->SMTPDebug = 0; // Habilitar modo depuración
+  $mail->SMTPDebug = 2; // Habilitar modo depuración
   $mail->isSMTP();
   $mail->Host = 'smtp.zoho.com';
   $mail->SMTPAuth = true;
   $mail->Username = 'cafecito@pinedodaniel.shop';
   $mail->Password = 'jaziulxd';
   $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS; // Probar con TLS directo
-  $mail->Port = 465;
+  $mail->Port = 587;
 
   // Opcional: relajar la verificación de certificados (no recomendado para entornos de producción)
   $mail->SMTPOptions = array(
