@@ -7,6 +7,13 @@ require 'vendor/phpmailer/phpmailer/src/Exception.php';
 require 'vendor/phpmailer/phpmailer/src/PHPMailer.php';
 require 'vendor/phpmailer/phpmailer/src/SMTP.php';
 
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+  // Validar los campos del formulario
+  if (empty($_POST['name']) || empty($_POST['msg']) || !filter_var($_POST['email'] || empty($_POST['subject']), FILTER_VALIDATE_EMAIL)) {
+      http_response_code(500);
+      exit();
+  }
+
 $mail = new PHPMailer(true);
 
 $Email = $_POST['email'];
@@ -50,5 +57,6 @@ try {
   // Redirección con mensaje de error
   header('Location: contact.html');
   exit;
+}
 }
 ?>
