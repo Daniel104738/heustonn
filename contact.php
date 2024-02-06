@@ -1,8 +1,7 @@
 <?php
-
+use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
-use PHPMailer\PHPMailer\SMTP;
 
 require 'vendor/phpmailer/phpmailer/src/Exception.php';
 require 'vendor/phpmailer/phpmailer/src/PHPMailer.php';
@@ -10,54 +9,68 @@ require 'vendor/phpmailer/phpmailer/src/SMTP.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
   // Validar los campos del formulario
-  if (empty($_POST['name']) || empty($_POST['msg']) || !filter_var($_POST['email'] || empty($_POST['subject']), FILTER_VALIDATE_EMAIL)) {
-      http_response_code(500);
-      exit();
+  if (empty($_POST['name']) || empty($_POST['msg']) || !filter_var($_POST['email'], FILTER_VALIDATE_EMAIL) || empty($_POST['subject'])) {
+    http_response_code(500);
+    exit();
   }
 
-$mail = new PHPMailer(true);
+  $email = $_POST['email'];
+  $nombre = $_POST['name'];
+  $subject = $_POST['subject'];
+  $mensaje = $_POST['msg'];
 
-$Email = $_POST['email'];
-$nombre = $_POST['name'];
-$subject = $_POST['subject'];
-$msg = $_POST['msg'];
+  try {
+    $mail = new PHPMailer(true);
+    $mail->SMTPDebug = 2; // Habilitar modo depuración
+    $mail->isSMTP();
+    $mail->Host = 'smtp.zoho.com';
+    $mail->SMTPAuth = true;
+    $mail->Username = 'cafecito@pinedodaniel.shop';
+    $mail->Password = 'jaziulxd';
+    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS; // Probar con TLS directo
+    $mail->Port = 587;
 
-try {
-  $mail->SMTPDebug = 2; // Habilitar modo depuración
-  $mail->isSMTP();
-  $mail->Host = 'smtp.zoho.com';
-  $mail->SMTPAuth = true;
-  $mail->Username = 'cafecito@pinedodaniel.shop';
-  $mail->Password = 'jaziulxd';
-  $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS; // Probar con TLS directo
-  $mail->Port = 587;
+    // Opcional: relajar la verificación de certificados (no recomendado para entornos de producción)
+    $mail->SMTPOptions = array(
+      'ssl' => array(
+        'verify_peer' => false,
+        'verify_peer_name' => false,
+        'allow_self_signed' => true
+      )
+    );
 
-  // Opcional: relajar la verificación de certificados (no recomendado para entornos de producción)
-  $mail->SMTPOptions = array(
-    'ssl' => array(
-      'verify_peer' => false,
-      'verify_peer_name' => false,
-      'allow_self_signed' => true
-    )
-  );
+    $mail->setFrom('cafecito@pinedodaniel.shop', 'Daniel');
+    $mail->addAddress('cafecito@pinedodaniel.shop');
 
-  $mail->setFrom('cafecito@pinedodaniel.shop', 'Daniel');
-  $mail->addAddress($Email);
+    $mail->isHTML(true);
+    $mail->Subject = 'hola';
+    $mail->Body = 'has recibido un nuevo mensaje ';
 
-  $mail->isHTML(true);
-  $mail->Subject = $subject;
-  $mail->Body = $msg;
 
-  $mail->send();
+    try {
+      // Enviar correo a Zoho
+      $mail->send();
 
-  // Redirección con mensaje de éxito
-  header('Location: contact.html');
-  exit;
+      // Enviar correo de agradecimiento al usuario
+      $mail->clearAddresses();
+      $mail->addAddress($email);
+      $mail->Subject = "Gracias por ponerte en contacto";
+      $mail->Body ="holaaa";
 
-} catch (Exception $e) {
-  // Redirección con mensaje de error
-  header('Location: contact.html');
-  exit;
-}
+      $mail->send();
+
+      echo "Mensaje enviado correctamente";
+    } catch (Exception $e) {
+      http_response_code(500);
+      echo "Error al enviar el mensaje";
+      exit();
+    }
+  } catch (Exception $e) {
+    echo "Error al enviar el mensaje: " . $e->getMessage();
+  }
+} else {
+  // Redirigir si no es una solicitud POST
+  header("Location: contact.html");
+  exit();
 }
 ?>
